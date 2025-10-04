@@ -215,15 +215,15 @@
               <div className="flex-grow space-y-1">
                 <div>
                   <label className="block text-sm font-semibold">ИМЯ ПЕРСОНАЖА</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-base print:border-gray-300" placeholder="Имя" />
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-sm print:border-gray-300" placeholder="Имя" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold">КЛАСС</label>
-                  <input type="text" value={characterClass} onChange={(e) => setCharacterClass(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-base print:border-gray-300" placeholder="Класс" />
+                  <input type="text" value={characterClass} onChange={(e) => setCharacterClass(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-sm print:border-gray-300" placeholder="Класс" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold">РАСА</label>
-                  <input type="text" value={race} onChange={(e) => setRace(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-base print:border-gray-300" placeholder="Раса" />
+                  <input type="text" value={race} onChange={(e) => setRace(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-sm print:border-gray-300" placeholder="Раса" />
                 </div>
               </div>
               <div className="w-1/4 flex-shrink-0">
@@ -324,36 +324,36 @@
               ].map(field => (
                 <div key={field.label}>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">{field.label}</label>
-                  <textarea value={field.value} onChange={(e) => field.setter(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder={field.placeholder} style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <textarea value={field.value} onChange={(e) => field.setter(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder={field.placeholder} style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                 </div>
               ))}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">МОТИВАЦИЯ</label>
-                  <textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Что движет персонажем..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder="Что движет персонажем..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">КОНФЛИКТ</label>
-                  <textarea value={conflict} onChange={(e) => setConflict(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Внутренний или внешний конфликт..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <textarea value={conflict} onChange={(e) => setConflict(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder="Внутренний или внешний конфликт..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ТАЙНА</label>
-                <textarea value={secret} onChange={(e) => setSecret(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Секрет персонажа..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                <textarea value={secret} onChange={(e) => setSecret(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder="Секрет персонажа..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ОСОЗНАННОЕ ЖЕЛАНИЕ</label>
-                  <textarea value={consciousDesire} onChange={(e) => setConsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Чего персонаж хочет..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <textarea value={consciousDesire} onChange={(e) => setConsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder="Чего персонаж хочет..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">НЕОСОЗНАННОЕ ЖЕЛАНИЕ</label>
-                  <textarea value={unconsciousDesire} onChange={(e) => setUnconsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Что на самом деле нужно..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <textarea value={unconsciousDesire} onChange={(e) => setUnconsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder="Что на самом деле нужно..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">СЛАБОСТЬ</label>
-                <textarea value={weakness} onChange={(e) => setWeakness(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Уязвимость или недостаток..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                <textarea value={weakness} onChange={(e) => setWeakness(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-sm print:border-gray-300" rows="1" placeholder="Уязвимость или недостаток..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
               </div>
             </div>
           </div>
