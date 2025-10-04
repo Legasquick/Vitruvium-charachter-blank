@@ -27,7 +27,7 @@
 
   <script type="text/babel">
     // --- Получаем нужные функции из глобального объекта React ---
-    const { useState, useRef } = React;
+    const { useState, useRef, useEffect } = React;
 
     // --- Встроенные иконки как React-компоненты для надежности ---
     const FileText = ({ size = 20 }) => (
@@ -56,6 +56,41 @@
       </svg>
     );
     
+    // --- Компонент для авто-растягивания текстового поля ---
+    const AutoGrowTextarea = ({ isPrinting, value, ...props }) => {
+      const textareaRef = useRef(null);
+
+      // Растягиваем поле при изменении значения или после выхода из режима печати
+      useEffect(() => {
+        if (!isPrinting && textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+      }, [value, isPrinting]);
+
+      const handleInput = (e) => {
+        e.target.style.height = 'auto';
+        e.target.style.height = e.target.scrollHeight + 'px';
+        if (props.onChange) {
+          props.onChange(e);
+        }
+      };
+
+      // Для печати заменяем textarea на div, чтобы избежать обрезания текста
+      if (isPrinting) {
+        return (
+          <div 
+            className={props.className.replace('resize-none', '')}
+            style={{...props.style, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}
+          >
+            {value || ' '}
+          </div>
+        );
+      }
+
+      return <textarea ref={textareaRef} value={value} {...props} style={{...props.style, overflow: 'hidden'}} onInput={handleInput} />;
+    };
+
     // --- Ваш React-компонент ---
     function VitruviyCharacterSheet() {
       const [name, setName] = useState('');
@@ -173,7 +208,8 @@
         setIsPrinting(true);
         setTimeout(() => {
           window.print();
-          setIsPrinting(false);
+          // Важно сбросить isPrinting после печати, даже если пользователь отменил ее
+          setTimeout(() => setIsPrinting(false), 1);
         }, 100);
       };
 
@@ -208,7 +244,7 @@
           {/* --- ПЕРВАЯ СТРАНИЦА --- */}
           <div className="w-[210mm] bg-white p-4 mx-auto shadow-lg" style={{fontFamily: 'Arial, sans-serif'}}>
             <div className="text-center mb-4 border-b-2 border-gray-800 pb-2">
-              <h2 className="text-base font-bold">лист персонажа витрувий</h2>
+              <h2 className="text-base font-bold">Лист персонажа витрувий</h2>
             </div>
 
             <div className="flex gap-4 mb-2">
@@ -289,7 +325,7 @@
                 <div className="mb-2">
                   {traits.map((trait, index) => (
                     <div key={index} className="mb-1 flex gap-2">
-                      <textarea value={trait} onChange={(e) => updateTrait(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Черта ${index + 1}`} style={{ minHeight: '30px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                      <AutoGrowTextarea isPrinting={isPrinting} value={trait} onChange={(e) => updateTrait(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Черта ${index + 1}`} style={{ minHeight: '30px' }} />
                       {!isPrinting && <button onClick={() => removeTrait(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={traits.length === 1} style={{opacity: traits.length === 1 ? 0.5 : 1}}>−</button>}
                     </div>
                   ))}
@@ -301,7 +337,7 @@
                 <div>
                   {abilities.map((ability, index) => (
                     <div key={index} className="mb-1 flex gap-2">
-                      <textarea value={ability} onChange={(e) => updateAbility(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Способность ${index + 1}`} style={{ minHeight: '30px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                      <AutoGrowTextarea isPrinting={isPrinting} value={ability} onChange={(e) => updateAbility(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Способность ${index + 1}`} style={{ minHeight: '30px' }} />
                       {!isPrinting && <button onClick={() => removeAbility(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={abilities.length === 1} style={{opacity: abilities.length === 1 ? 0.5 : 1}}>−</button>}
                     </div>
                   ))}
@@ -313,7 +349,7 @@
           {/* --- ВТОРАЯ СТРАНИЦА --- */}
           <div className="w-[210mm] bg-white p-8 mx-auto shadow-lg mt-8 print:break-before-page print:mt-0" style={{fontFamily: 'Arial, sans-serif'}}>
             <div className="text-center mb-4 border-b-2 border-gray-800 pb-2">
-              <h2 className="text-base font-bold">{`предыстория персонажа • ${name || 'Имя персонажа'}`}</h2>
+              <h2 className="text-base font-bold">{`Предыстория персонажа • ${name || 'Имя персонажа'}`}</h2>
             </div>
             <div className="space-y-4">
               {[
@@ -323,36 +359,36 @@
               ].map(field => (
                 <div key={field.label}>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">{field.label}</label>
-                  <textarea value={field.value} onChange={(e) => field.setter(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder={field.placeholder} style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <AutoGrowTextarea isPrinting={isPrinting} value={field.value} onChange={(e) => field.setter(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder={field.placeholder} style={{ minHeight: '60px' }} />
                 </div>
               ))}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">МОТИВАЦИЯ</label>
-                  <textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Что движет персонажем..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <AutoGrowTextarea isPrinting={isPrinting} value={motivation} onChange={(e) => setMotivation(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Что движет персонажем..." style={{ minHeight: '60px' }} />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">КОНФЛИКТ</label>
-                  <textarea value={conflict} onChange={(e) => setConflict(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Внутренний или внешний конфликт..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <AutoGrowTextarea isPrinting={isPrinting} value={conflict} onChange={(e) => setConflict(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Внутренний или внешний конфликт..." style={{ minHeight: '60px' }} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ТАЙНА</label>
-                <textarea value={secret} onChange={(e) => setSecret(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Секрет персонажа..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                <AutoGrowTextarea isPrinting={isPrinting} value={secret} onChange={(e) => setSecret(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Секрет персонажа..." style={{ minHeight: '60px' }} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ОСОЗНАННОЕ ЖЕЛАНИЕ</label>
-                  <textarea value={consciousDesire} onChange={(e) => setConsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Чего персонаж хочет..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <AutoGrowTextarea isPrinting={isPrinting} value={consciousDesire} onChange={(e) => setConsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Чего персонаж хочет..." style={{ minHeight: '60px' }} />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">НЕОСОЗНАННОЕ ЖЕЛАНИЕ</label>
-                  <textarea value={unconsciousDesire} onChange={(e) => setUnconsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Что на самом деле нужно..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                  <AutoGrowTextarea isPrinting={isPrinting} value={unconsciousDesire} onChange={(e) => setUnconsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Что на самом деле нужно..." style={{ minHeight: '60px' }} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">СЛАБОСТЬ</label>
-                <textarea value={weakness} onChange={(e) => setWeakness(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Уязвимость или недостаток..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                <AutoGrowTextarea isPrinting={isPrinting} value={weakness} onChange={(e) => setWeakness(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Уязвимость или недостаток..." style={{ minHeight: '60px' }} />
               </div>
             </div>
           </div>
