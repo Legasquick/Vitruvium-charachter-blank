@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лист персонажа Витрувий</title>
+  
+  <!-- Tailwind CSS для стилей -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React 18 и ReactDOM для работы компонента -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <!-- Babel для преобразования JSX в JavaScript прямо в браузере -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f0f0f0; /* Светлый фон для страницы */
+    }
+  </style>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // --- Получаем нужные функции из глобального объекта React ---
+    const { useState, useRef } = React;
+
+    // --- Встроенные иконки как React-компоненты для надежности ---
+    const FileText = ({ size = 20 }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <line x1="10" y1="9" x2="8" y2="9" />
+      </svg>
+    );
+
+    const Download = ({ size = 20 }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    );
+
+    const Upload = ({ size = 20 }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
+      </svg>
+    );
+    
+    // --- Ваш React-компонент ---
+    function VitruviyCharacterSheet() {
+      const [name, setName] = useState('');
+      const [characterClass, setCharacterClass] = useState('');
+      const [race, setRace] = useState('');
+      const [artImage, setArtImage] = useState(null);
+      const artInputRef = useRef(null);
+      const [stats, setStats] = useState({
+        physique: 1,
+        attention: 1,
+        movement: 1,
+        thinking: 1,
+        communication: 1,
+        will: 1
+      });
+      const [traits, setTraits] = useState(['']);
+      const [abilities, setAbilities] = useState(['']);
+      
+      const [character, setCharacter] = useState('');
+      const [aesthetic, setAesthetic] = useState('');
+      const [feature, setFeature] = useState('');
+      const [motivation, setMotivation] = useState('');
+      const [conflict, setConflict] = useState('');
+      const [secret, setSecret] = useState('');
+      const [consciousDesire, setConsciousDesire] = useState('');
+      const [unconsciousDesire, setUnconsciousDesire] = useState('');
+      const [weakness, setWeakness] = useState('');
+      
+      const [isPrinting, setIsPrinting] = useState(false);
+      const fileInputRef = useRef(null);
+
+      const updateStat = (stat, value) => {
+        const newValue = Math.max(1, Math.min(10, parseInt(value) || 1));
+        setStats({...stats, [stat]: newValue});
+      };
+
+      const updateTrait = (index, value) => {
+        const newTraits = [...traits];
+        newTraits[index] = value;
+        setTraits(newTraits);
+      };
+
+      const updateAbility = (index, value) => {
+        const newAbilities = [...abilities];
+        newAbilities[index] = value;
+        setAbilities(newAbilities);
+      };
+
+      const addTrait = () => setTraits([...traits, '']);
+      const removeTrait = (index) => {
+        if (traits.length > 1) setTraits(traits.filter((_, i) => i !== index));
+      };
+
+      const addAbility = () => setAbilities([...abilities, '']);
+      const removeAbility = (index) => {
+        if (abilities.length > 1) setAbilities(abilities.filter((_, i) => i !== index));
+      };
+
+      const health = stats.physique * 6;
+      const inspiration = stats.will * 2;
+      const speed = stats.movement * 2;
+      const carryCapacity = stats.physique * 20;
+
+      const saveAsJSON = () => {
+        const characterData = {
+          name, class: characterClass, race, artImage, stats, traits, abilities,
+          attributes: { health, inspiration, speed, carryCapacity },
+          background: { character, aesthetic, feature, motivation, conflict, secret, consciousDesire, unconsciousDesire, weakness }
+        };
+        const dataStr = JSON.stringify(characterData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${name || 'персонаж'}_витрувий.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadFromJSON = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              setName(data.name || '');
+              setCharacterClass(data.class || '');
+              setRace(data.race || '');
+              setArtImage(data.artImage || null);
+              setStats(data.stats || { physique: 1, attention: 1, movement: 1, thinking: 1, communication: 1, will: 1 });
+              setTraits(data.traits && data.traits.length > 0 ? data.traits : ['']);
+              setAbilities(data.abilities && data.abilities.length > 0 ? data.abilities : ['']);
+              if (data.background) {
+                setCharacter(data.background.character || '');
+                setAesthetic(data.background.aesthetic || '');
+                setFeature(data.background.feature || '');
+                setMotivation(data.background.motivation || '');
+                setConflict(data.background.conflict || '');
+                setSecret(data.background.secret || '');
+                setConsciousDesire(data.background.consciousDesire || '');
+                setUnconsciousDesire(data.background.unconsciousDesire || '');
+                setWeakness(data.background.weakness || '');
+              }
+            } catch (error) {
+              console.error("Ошибка загрузки файла:", error);
+              alert('Ошибка загрузки файла. Убедитесь, что это корректный JSON-файл персонажа.');
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+
+      const saveAsPDF = () => {
+        setIsPrinting(true);
+        setTimeout(() => {
+          window.print();
+          setIsPrinting(false);
+        }, 100);
+      };
+
+      const handleArtUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setArtImage(e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      return (
+        <div className="py-8">
+          {!isPrinting && (
+            <div className="w-[210mm] mx-auto mb-4 flex gap-2 print:hidden">
+              <button onClick={saveAsPDF} className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <FileText /> Сохранить PDF
+              </button>
+              <button onClick={saveAsJSON} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <Download /> Сохранить JSON
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                <Upload /> Загрузить JSON
+              </button>
+              <input ref={fileInputRef} type="file" accept=".json" onChange={loadFromJSON} className="hidden" />
+            </div>
+          )}
+
+          {/* --- ПЕРВАЯ СТРАНИЦА --- */}
+          <div className="w-[210mm] bg-white p-4 mx-auto shadow-lg" style={{fontFamily: 'Arial, sans-serif'}}>
+            <div className="text-center mb-4 border-b-2 border-gray-800 pb-2">
+              <h2 className="text-base font-bold">лист персонажа витрувий</h2>
+            </div>
+
+            <div className="flex gap-4 mb-2">
+              <div className="flex-grow space-y-1">
+                <div>
+                  <label className="block text-sm font-semibold">ИМЯ ПЕРСОНАЖА</label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-base print:border-gray-300" placeholder="Имя" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold">КЛАСС</label>
+                  <input type="text" value={characterClass} onChange={(e) => setCharacterClass(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-base print:border-gray-300" placeholder="Класс" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold">РАСА</label>
+                  <input type="text" value={race} onChange={(e) => setRace(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-base print:border-gray-300" placeholder="Раса" />
+                </div>
+              </div>
+              <div className="w-1/4 flex-shrink-0">
+                <h2 className="text-base font-bold mb-1 bg-gray-200 px-3 py-1 rounded text-center">ПОРТРЕТ</h2>
+                <div className="relative w-full aspect-square border-2 border-gray-400 rounded overflow-hidden bg-gray-100">
+                  {artImage ? (
+                    <img src={artImage} alt="Портрет персонажа" className="absolute w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400"><span className="text-4xl">🎭</span></div>
+                  )}
+                </div>
+                {!isPrinting && (
+                  <div className="mt-1">
+                    <button onClick={() => artInputRef.current?.click()} className="w-full bg-indigo-500 text-white px-3 py-1 rounded text-sm hover:bg-indigo-600 print:hidden">Загрузить арт</button>
+                    <input ref={artInputRef} type="file" accept="image/*" onChange={handleArtUpload} className="hidden" />
+                    {artImage && <button onClick={() => setArtImage(null)} className="w-full mt-1 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Удалить арт</button>}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <h2 className="text-base font-bold mb-2 bg-gray-200 px-3 py-1 rounded">ХАРАКТЕРИСТИКИ</h2>
+                {[
+                  {key: 'physique', label: '🧍‍♂️ Телосложение', desc: 'сопротивление физ. эффектам'},
+                  {key: 'attention', label: '👁 Внимание', desc: 'восприятие, дальний бой'},
+                  {key: 'movement', label: '🦵 Движение', desc: 'перемещение, ближний бой'},
+                  {key: 'thinking', label: '🧠 Мышление', desc: 'анализ, знания'},
+                  {key: 'communication', label: '🎭 Общение', desc: 'влияние речью'},
+                  {key: 'will', label: '🌀 Воля', desc: 'сопротивление псих. эффектам'}
+                ].map(stat => (
+                  <div key={stat.key} className="mb-1 border border-gray-300 rounded p-1">
+                    <div className="flex justify-between items-center">
+                      <label className="font-semibold text-xs">{stat.label}</label>
+                      <input type="number" min="1" max="10" value={stats[stat.key]} onChange={(e) => updateStat(stat.key, e.target.value)} className="w-14 border-2 border-blue-500 rounded text-center text-lg font-bold print:border-gray-300" />
+                    </div>
+                    <p className="text-xs text-gray-600 leading-tight">{stat.desc}</p>
+                  </div>
+                ))}
+                <h2 className="text-base font-bold mb-1 mt-2 bg-gray-200 px-3 py-1 rounded">АТРИБУТЫ</h2>
+                <div className="space-y-1">
+                  <div className="border-2 border-red-400 rounded p-1 bg-red-50">
+                    <div className="text-xs text-gray-600">Максимум</div>
+                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">❤️‍🩹 Здоровье</span><span className="text-lg font-bold text-red-600">{health}</span></div>
+                  </div>
+                  <div className="border-2 border-yellow-400 rounded p-1 bg-yellow-50">
+                    <div className="text-xs text-gray-600">Максимум</div>
+                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">⭐️ Вдохновение</span><span className="text-lg font-bold text-yellow-600">{inspiration}</span></div>
+                  </div>
+                  <div className="border-2 border-blue-400 rounded p-1 bg-blue-50">
+                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">👣 Скорость</span><span className="text-lg font-bold text-blue-600">{speed} м</span></div>
+                  </div>
+                  <div className="border-2 border-gray-400 rounded p-1 bg-gray-50">
+                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">🪨 Грузоподъёмность</span><span className="text-lg font-bold text-gray-600">{carryCapacity} кг</span></div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-span-2">
+                <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
+                  <h2 className="text-base font-bold">ЧЕРТЫ</h2>
+                  {!isPrinting && <button onClick={addTrait} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
+                </div>
+                <div className="mb-2">
+                  {traits.map((trait, index) => (
+                    <div key={index} className="mb-1 flex gap-2">
+                      <textarea value={trait} onChange={(e) => updateTrait(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-sm print:border-gray-300" rows="1" placeholder={`Черта ${index + 1}`} style={{ minHeight: '30px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                      {!isPrinting && <button onClick={() => removeTrait(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={traits.length === 1} style={{opacity: traits.length === 1 ? 0.5 : 1}}>−</button>}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
+                  <h2 className="text-base font-bold">СПОСОБНОСТИ</h2>
+                  {!isPrinting && <button onClick={addAbility} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
+                </div>
+                <div>
+                  {abilities.map((ability, index) => (
+                    <div key={index} className="mb-1 flex gap-2">
+                      <textarea value={ability} onChange={(e) => updateAbility(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-sm print:border-gray-300" rows="1" placeholder={`Способность ${index + 1}`} style={{ minHeight: '30px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                      {!isPrinting && <button onClick={() => removeAbility(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={abilities.length === 1} style={{opacity: abilities.length === 1 ? 0.5 : 1}}>−</button>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* --- ВТОРАЯ СТРАНИЦА --- */}
+          <div className="w-[210mm] bg-white p-8 mx-auto shadow-lg mt-8 print:break-before-page print:mt-0" style={{fontFamily: 'Arial, sans-serif'}}>
+            <div className="text-center mb-4 border-b-2 border-gray-800 pb-2">
+              <h2 className="text-base font-bold">{`предыстория персонажа • ${name || 'Имя персонажа'}`}</h2>
+            </div>
+            <div className="space-y-4">
+              {[
+                {label: "ХАРАКТЕР", value: character, setter: setCharacter, placeholder: "Основные черты характера персонажа..."},
+                {label: "СУТЬ ЭСТЕТИКИ", value: aesthetic, setter: setAesthetic, placeholder: "Визуальный стиль, атмосфера персонажа..."},
+                {label: "ФИШКА", value: feature, setter: setFeature, placeholder: "Уникальная особенность персонажа..."},
+              ].map(field => (
+                <div key={field.label}>
+                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">{field.label}</label>
+                  <textarea value={field.value} onChange={(e) => field.setter(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder={field.placeholder} style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                </div>
+              ))}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">МОТИВАЦИЯ</label>
+                  <textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Что движет персонажем..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">КОНФЛИКТ</label>
+                  <textarea value={conflict} onChange={(e) => setConflict(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Внутренний или внешний конфликт..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ТАЙНА</label>
+                <textarea value={secret} onChange={(e) => setSecret(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Секрет персонажа..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ОСОЗНАННОЕ ЖЕЛАНИЕ</label>
+                  <textarea value={consciousDesire} onChange={(e) => setConsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Чего персонаж хочет..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">НЕОСОЗНАННОЕ ЖЕЛАНИЕ</label>
+                  <textarea value={unconsciousDesire} onChange={(e) => setUnconsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Что на самом деле нужно..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">СЛАБОСТЬ</label>
+                <textarea value={weakness} onChange={(e) => setWeakness(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none print:border-gray-300" rows="1" placeholder="Уязвимость или недостаток..." style={{ minHeight: '60px', height: 'auto', overflow: 'hidden' }} onInput={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} />
+              </div>
+            </div>
+          </div>
+          <style>{`
+            @media print {
+              body { margin: 0; background-color: #fff; }
+              .py-8 { padding: 0; }
+              .shadow-lg { box-shadow: none; margin-top: 0 !important; }
+              .w-\\[210mm\\] { width: 100%; }
+              .print\\:hidden { display: none !important; }
+              .print\\:border-gray-300 { border-color: #d1d5db !important; }
+              div { page-break-inside: avoid; }
+              
+              /* Force printing of background colors */
+              .bg-gray-200, .bg-red-50, .bg-yellow-50, .bg-blue-50, .bg-gray-50 {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+          `}</style>
+        </div>
+      );
+    }
+
+    // --- Новый способ "монтирования" приложения в React 18 ---
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<VitruviyCharacterSheet />);
+
+  </script>
+
+</body>
+</html>
