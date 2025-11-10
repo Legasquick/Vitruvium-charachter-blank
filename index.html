@@ -94,6 +94,7 @@
       const [name, setName] = useState('');
       const [characterClass, setCharacterClass] = useState('');
       const [race, setRace] = useState('');
+      const [description, setDescription] = useState(''); // Новое состояние для описания
       const [stats, setStats] = useState({
         physique: 1,
         attention: 1,
@@ -103,6 +104,7 @@
         will: 1
       });
       const [traits, setTraits] = useState(['']);
+      const [skills, setSkills] = useState(['']); // Новое состояние для умений
       const [abilities, setAbilities] = useState(['']);
       
       const [character, setCharacter] = useState('');
@@ -116,6 +118,7 @@
       const [weakness, setWeakness] = useState('');
       
       const [isPrinting, setIsPrinting] = useState(false);
+      const [jsonInput, setJsonInput] = useState(''); // Состояние для текстового поля JSON
       const fileInputRef = useRef(null);
 
       const updateStat = (stat, value) => {
@@ -129,6 +132,12 @@
         setTraits(newTraits);
       };
 
+      const updateSkill = (index, value) => { // Функция для обновления умений
+        const newSkills = [...skills];
+        newSkills[index] = value;
+        setSkills(newSkills);
+      };
+
       const updateAbility = (index, value) => {
         const newAbilities = [...abilities];
         newAbilities[index] = value;
@@ -138,6 +147,11 @@
       const addTrait = () => setTraits([...traits, '']);
       const removeTrait = (index) => {
         if (traits.length > 1) setTraits(traits.filter((_, i) => i !== index));
+      };
+
+      const addSkill = () => setSkills([...skills, '']); // Функция для добавления умения
+      const removeSkill = (index) => { // Функция для удаления умения
+        if (skills.length > 1) setSkills(skills.filter((_, i) => i !== index));
       };
 
       const addAbility = () => setAbilities([...abilities, '']);
@@ -155,6 +169,7 @@
           "имя": name,
           "класс": characterClass,
           "раса": race,
+          "описание": description, // Добавляем описание в JSON
           "характеристики": {
             "телосложение": stats.physique,
             "внимание": stats.attention,
@@ -164,6 +179,7 @@
             "воля": stats.will
           },
           "черты": traits,
+          "умения": skills, // Добавляем умения в JSON
           "способности": abilities,
           "атрибуты": {
             "здоровье": health,
@@ -192,55 +208,71 @@
         link.click();
         URL.revokeObjectURL(url);
       };
+      
+      const parseAndLoadJSON = (jsonString) => {
+        try {
+          const data = JSON.parse(jsonString);
+          
+          // Загрузка основной информации
+          setName(data.имя || data.name || '');
+          setCharacterClass(data.класс || data.class || '');
+          setRace(data.раса || data.race || '');
+          setDescription(data.описание || data.description || ''); // Загрузка описания
 
-      const loadFromJSON = (event) => {
+          // Загрузка характеристик
+          const loadedStats = data.характеристики || data.stats || {};
+          setStats({
+            physique: loadedStats.телосложение || loadedStats.physique || 1,
+            attention: loadedStats.внимание || loadedStats.attention || 1,
+            movement: loadedStats.движение || loadedStats.movement || 1,
+            thinking: loadedStats.мышление || loadedStats.thinking || 1,
+            communication: loadedStats.общение || loadedStats.communication || 1,
+            will: loadedStats.воля || loadedStats.will || 1
+          });
+          
+          const loadedTraits = data.черты || data.traits;
+          const loadedSkills = data.умения || data.skills; // Загрузка умений
+          const loadedAbilities = data.способности || data.abilities;
+
+          setTraits(loadedTraits && loadedTraits.length > 0 ? loadedTraits : ['']);
+          setSkills(loadedSkills && loadedSkills.length > 0 ? loadedSkills : ['']); // Установка умений
+          setAbilities(loadedAbilities && loadedAbilities.length > 0 ? loadedAbilities : ['']);
+          
+          // Загрузка предыстории
+          const background = data.предыстория || data.background || {};
+          setCharacter(background.характер || background.character || '');
+          setAesthetic(background.эстетика || background.aesthetic || '');
+          setFeature(background.фишка || background.feature || '');
+          setMotivation(background.мотивация || background.motivation || '');
+          setConflict(background.конфликт || background.conflict || '');
+          setSecret(background.тайна || background.secret || '');
+          setConsciousDesire(background.осознанное_желание || background.consciousDesire || '');
+          setUnconsciousDesire(background.неосознанное_желание || background.unconsciousDesire || '');
+          setWeakness(background.слабость || background.weakness || '');
+          
+          // Очищаем текстовое поле после успешной загрузки
+          setJsonInput('');
+
+        } catch (error) {
+          console.error("Ошибка загрузки JSON:", error);
+          alert('Ошибка загрузки. Убедитесь, что это корректный JSON-файл или текст.');
+        }
+      };
+
+      const loadFromFile = (event) => {
         const file = event.target.files[0];
         if (file) {
           const reader = new FileReader();
-          reader.onload = (e) => {
-            try {
-              const data = JSON.parse(e.target.result);
-              
-              // Загрузка основной информации (с поддержкой старых и новых ключей)
-              setName(data.имя || data.name || '');
-              setCharacterClass(data.класс || data.class || '');
-              setRace(data.раса || data.race || '');
-
-              // Загрузка характеристик
-              const loadedStats = data.характеристики || data.stats || {};
-              setStats({
-                physique: loadedStats.телосложение || loadedStats.physique || 1,
-                attention: loadedStats.внимание || loadedStats.attention || 1,
-                movement: loadedStats.движение || loadedStats.movement || 1,
-                thinking: loadedStats.мышление || loadedStats.thinking || 1,
-                communication: loadedStats.общение || loadedStats.communication || 1,
-                will: loadedStats.воля || loadedStats.will || 1
-              });
-              
-              const loadedTraits = data.черты || data.traits;
-              const loadedAbilities = data.способности || data.abilities;
-
-              setTraits(loadedTraits && loadedTraits.length > 0 ? loadedTraits : ['']);
-              setAbilities(loadedAbilities && loadedAbilities.length > 0 ? loadedAbilities : ['']);
-              
-              // Загрузка предыстории
-              const background = data.предыстория || data.background || {};
-              setCharacter(background.характер || background.character || '');
-              setAesthetic(background.эстетика || background.aesthetic || '');
-              setFeature(background.фишка || background.feature || '');
-              setMotivation(background.мотивация || background.motivation || '');
-              setConflict(background.конфликт || background.conflict || '');
-              setSecret(background.тайна || background.secret || '');
-              setConsciousDesire(background.осознанное_желание || background.consciousDesire || '');
-              setUnconsciousDesire(background.неосознанное_желание || background.unconsciousDesire || '');
-              setWeakness(background.слабость || background.weakness || '');
-
-            } catch (error) {
-              console.error("Ошибка загрузки файла:", error);
-              alert('Ошибка загрузки файла. Убедитесь, что это корректный JSON-файл персонажа.');
-            }
-          };
+          reader.onload = (e) => parseAndLoadJSON(e.target.result);
           reader.readAsText(file);
+        }
+      };
+
+      const loadFromText = () => {
+        if (jsonInput.trim()) {
+          parseAndLoadJSON(jsonInput);
+        } else {
+          alert('Вставьте JSON в текстовое поле для загрузки.');
         }
       };
 
@@ -255,17 +287,31 @@
       return (
         <div className="py-8">
           {!isPrinting && (
-            <div className="w-[210mm] mx-auto mb-4 flex gap-2 print:hidden">
-              <button onClick={saveAsPDF} className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                <FileText /> Сохранить PDF
-              </button>
-              <button onClick={saveAsJSON} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                <Download /> Сохранить JSON
-              </button>
-              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                <Upload /> Загрузить JSON
-              </button>
-              <input ref={fileInputRef} type="file" accept=".json" onChange={loadFromJSON} className="hidden" />
+            <div className="w-[210mm] mx-auto mb-4 print:hidden">
+              <div className="flex gap-2 mb-2">
+                <button onClick={saveAsPDF} className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                  <FileText /> Сохранить PDF
+                </button>
+                <button onClick={saveAsJSON} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                  <Download /> Сохранить JSON
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                  <Upload /> Загрузить из файла
+                </button>
+                <input ref={fileInputRef} type="file" accept=".json" onChange={loadFromFile} className="hidden" />
+              </div>
+              <div className="flex gap-2">
+                <textarea 
+                  value={jsonInput} 
+                  onChange={(e) => setJsonInput(e.target.value)} 
+                  className="flex-1 border border-gray-400 rounded px-2 py-1 text-xs" 
+                  rows="2" 
+                  placeholder="Или вставьте JSON сюда..."
+                ></textarea>
+                <button onClick={loadFromText} className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                  <Upload /> Загрузить из текста
+                </button>
+              </div>
             </div>
           )}
 
@@ -284,6 +330,20 @@
                 <label className="block text-sm font-semibold">РАСА</label>
                 <input type="text" value={race} onChange={(e) => setRace(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-xs print:border-gray-300" placeholder="Раса" />
               </div>
+            </div>
+            
+            {/* --- ОПИСАНИЕ ПЕРСОНАЖА --- */}
+            <div className="mb-4">
+                <h2 className="text-sm font-bold mb-2 bg-gray-200 px-3 py-1 rounded">ОПИСАНИЕ ПЕРСОНАЖА</h2>
+                <AutoGrowTextarea 
+                    isPrinting={isPrinting} 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)} 
+                    className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" 
+                    rows="2" 
+                    placeholder="Краткое описание внешности, характера и предыстории..."
+                    style={{ minHeight: '60px' }}
+                />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
@@ -336,6 +396,21 @@
                     </div>
                   ))}
                 </div>
+
+                {/* --- УМЕНИЯ --- */}
+                <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
+                  <h2 className="text-sm font-bold">УМЕНИЯ</h2>
+                  {!isPrinting && <button onClick={addSkill} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
+                </div>
+                <div className="mb-2">
+                  {skills.map((skill, index) => (
+                    <div key={index} className="mb-1 flex gap-2">
+                      <AutoGrowTextarea isPrinting={isPrinting} value={skill} onChange={(e) => updateSkill(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Умение ${index + 1}`} style={{ minHeight: '30px' }} />
+                      {!isPrinting && <button onClick={() => removeSkill(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={skills.length === 1} style={{opacity: skills.length === 1 ? 0.5 : 1}}>−</button>}
+                    </div>
+                  ))}
+                </div>
+
                 <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
                   <h2 className="text-sm font-bold">СПОСОБНОСТИ</h2>
                   {!isPrinting && <button onClick={addAbility} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
@@ -422,4 +497,4 @@
   </script>
 
 </body>
-</html>
+</html>```
