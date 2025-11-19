@@ -18,7 +18,7 @@
   <style>
     /* Основные стили */
     :root {
-      --safe-bottom: env(safe-area-inset-bottom, 20px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     body {
@@ -26,10 +26,12 @@
       font-family: 'Inter', sans-serif;
       color: #1c1917;
       -webkit-font-smoothing: antialiased;
-      /* Учитываем высоту меню (примерно 60px) + безопасную зону */
-      padding-bottom: calc(60px + var(--safe-bottom) + 20px);
       
-      /* Предотвращаем "отрыв" меню при скролле на iOS */
+      /* Отступ снизу страницы, чтобы контент не перекрывался плавающим меню */
+      /* Высота меню (~70px) + отступ от низа (16px) + safe area */
+      padding-bottom: calc(90px + var(--safe-bottom));
+      
+      /* Блокируем "резиновый" скролл всей страницы на iOS, чтобы меню визуально не плавало отдельно от фона */
       overscroll-behavior-y: none; 
     }
 
@@ -43,12 +45,6 @@
     .font-header { font-family: 'Cinzel', serif; }
     .font-hand { font-family: 'Merriweather', serif; }
     
-    /* Утилита для безопасной зоны снизу */
-    .pb-safe {
-        padding-bottom: constant(safe-area-inset-bottom); /* iOS 11.0 */
-        padding-bottom: env(safe-area-inset-bottom); /* iOS 11.2+ */
-    }
-
     /* Убираем стрелки у input number */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
@@ -125,7 +121,7 @@
     };
 
     const MenuButton = ({ onClick, icon, label, colorClass, textColorClass = "text-white" }) => (
-        <button onClick={onClick} className={`p-3 flex-1 md:flex-none flex justify-center items-center ${colorClass} ${textColorClass} rounded-lg transition-colors shadow-md group relative`}>
+        <button onClick={onClick} className={`p-3 flex-1 md:flex-none flex justify-center items-center ${colorClass} ${textColorClass} rounded-xl md:rounded-lg transition-all shadow-md active:scale-95 group relative`}>
             <Icon name={icon} size={20} />
             <span className={`hidden md:block absolute right-full mr-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none font-bold font-header z-50 shadow-lg`}>
                 {label}
@@ -331,10 +327,16 @@
             </div>
           )}
 
-          {/* МЕНЮ (АДАПТИВНОЕ ИСПРАВЛЕННОЕ) */}
+          {/* МЕНЮ (ПЛАВАЮЩЕЕ НАД SAFE ZONE) */}
           <div className={`fixed z-[9999] transition-opacity ${isPrinting ? 'opacity-0 pointer-events-none' : 'opacity-100'}
-              bottom-0 left-0 w-full bg-white border-t border-stone-300 p-2 pb-safe flex gap-2 justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]
-              md:top-4 md:right-4 md:bottom-auto md:left-auto md:w-auto md:border md:rounded-xl md:flex-col md:shadow-2xl md:pb-2
+              /* Мобильные стили: Плавающий остров */
+              left-4 right-4
+              bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]
+              bg-white border border-stone-300 rounded-2xl p-2 flex gap-2 justify-around shadow-2xl
+              
+              /* Десктопные стили: Сброс и перемещение в правый угол */
+              md:top-4 md:right-4 md:bottom-auto md:left-auto 
+              md:w-auto md:border md:rounded-xl md:flex-col md:shadow-2xl md:p-2
           `}>
             <MenuButton onClick={printSheet} icon="print" label="Печать" colorClass="bg-stone-800 hover:bg-stone-700" />
             <MenuButton onClick={saveAsJSON} icon="download" label="Сохранить" colorClass="bg-emerald-600 hover:bg-emerald-500" />
