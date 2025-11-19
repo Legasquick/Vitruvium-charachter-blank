@@ -70,7 +70,6 @@
         color: black !important;
         border: 2px solid #444 !important;
       }
-      /* Принудительно красим инпуты и тексты в черный внутри ink-saver */
       .ink-saver input, .ink-saver textarea { color: black !important; }
       .ink-saver .text-white { color: black !important; }
     }
@@ -83,19 +82,23 @@
   <script type="text/babel">
     const { useState, useRef, useEffect } = React;
 
-    // --- ИКОНКИ ---
-    const Icon = ({ name, size = 16, className = "" }) => {
+    // --- ИКОНКИ (обновлены под стиль источника) ---
+    const Icon = ({ name, size = 20, className = "" }) => {
       const icons = {
-        save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />,
-        download: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />,
-        upload: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />,
-        clipboard: <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z" />,
+        // Иконки интерфейса
+        print: <g><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></g>,
+        download: <g><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></g>,
+        upload: <g><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></g>,
+        clipboard: <g><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></g>,
+        trash: <g><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></g>,
+        x: <g><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></g>,
+        
+        // Иконки листа
         plus: <path d="M12 5v14M5 12h14" />,
         minus: <path d="M5 12h14" />,
-        file: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14 2z" />,
-        lock: <path d="M12 17h.01M10 21h4a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm2-10V7a4 4 0 1 0-8 0v4" />,
         heart: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />,
-        x: <path d="M18 6L6 18M6 6l12 12" />
+        file: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14 2z" />,
+        lock: <path d="M12 17h.01M10 21h4a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm2-10V7a4 4 0 1 0-8 0v4" />
       };
       return (
         <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -104,7 +107,16 @@
       );
     };
 
-    // --- TEXTAREA ---
+    // --- COMPONENTS ---
+    const MenuButton = ({ onClick, icon, label, colorClass, textColorClass = "text-white" }) => (
+        <button onClick={onClick} className={`p-3 ${colorClass} ${textColorClass} rounded-lg transition-colors shadow-md group relative`}>
+            <Icon name={icon} size={20} />
+            <span className={`absolute right-full mr-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none font-bold font-header z-50 shadow-lg`}>
+                {label}
+            </span>
+        </button>
+    );
+
     const AutoGrowTextarea = ({ isPrinting, value, className, placeholder, onChange, style }) => {
       const textareaRef = useRef(null);
       useEffect(() => {
@@ -126,7 +138,6 @@
       );
     };
 
-    // --- БЛОК ХАРАКТЕРИСТИКИ ---
     const StatBox = ({ label, value, statKey, onUpdate }) => (
       <div className="flex flex-col items-center justify-center p-2 bg-stone-50 rounded-lg border border-stone-200 shadow-sm print:shadow-none print:border-stone-300 print:bg-stone-50 h-24 transition-colors hover:border-stone-400">
         <span className="text-[9px] uppercase font-bold text-stone-500 mb-1 text-center w-full leading-tight tracking-wide">{label}</span>
@@ -161,6 +172,7 @@
 
     // --- ГЛАВНЫЙ КОМПОНЕНТ ---
     function VitruviyCharacterSheet() {
+      // Данные персонажа
       const [name, setName] = useState('');
       const [characterClass, setCharacterClass] = useState('');
       const [race, setRace] = useState('');
@@ -181,14 +193,14 @@
       const [unconsciousDesire, setUnconsciousDesire] = useState('');
       const [weakness, setWeakness] = useState('');
       
+      // UI State
       const [isPrinting, setIsPrinting] = useState(false);
-      
-      // State for JSON Text Import Modal
       const [showJsonModal, setShowJsonModal] = useState(false);
       const [jsonInput, setJsonInput] = useState('');
       
       const fileInputRef = useRef(null);
 
+      // --- ЛОГИКА ---
       const updateStat = (stat, value) => {
         if (value === '') { setStats(prev => ({...prev, [stat]: ''})); return; }
         const val = parseInt(value);
@@ -207,7 +219,7 @@
       const speed = sMovement * 2;
       const carryCapacity = sPhysique * 20;
 
-      // --- ОБЩАЯ ЛОГИКА ЗАГРУЗКИ (ФАЙЛ ИЛИ ТЕКСТ) ---
+      // --- ОБЩАЯ ЛОГИКА ЗАГРУЗКИ ---
       const applyData = (data) => {
         try {
           setName(data.имя || data.name || '');
@@ -247,7 +259,15 @@
         }
       };
 
-      // --- СОХРАНЕНИЕ JSON (РУС) ---
+      const clearAll = () => {
+          if(!confirm("Вы уверены, что хотите очистить лист?")) return;
+          setName(''); setCharacterClass(''); setRace(''); setDescription('');
+          setStats({ physique: 1, attention: 1, movement: 1, thinking: 1, communication: 1, will: 1 });
+          setTraits(['']); setSkills(['']); setAbilities(['']);
+          setCharacter(''); setAesthetic(''); setFeature(''); setMotivation(''); 
+          setConflict(''); setSecret(''); setConsciousDesire(''); setUnconsciousDesire(''); setWeakness('');
+      };
+
       const saveAsJSON = () => {
         const characterData = {
           "имя": name,
@@ -287,7 +307,6 @@
         URL.revokeObjectURL(url);
       };
 
-      // --- ЗАГРУЗКА ФАЙЛА ---
       const loadFromFile = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -302,7 +321,6 @@
         e.target.value = null; 
       };
 
-      // --- ЗАГРУЗКА ТЕКСТА ---
       const loadFromText = () => {
         try {
           const data = JSON.parse(jsonInput);
@@ -330,8 +348,8 @@
             <div className="fixed inset-0 bg-stone-900/60 z-[100] flex items-center justify-center backdrop-blur-sm p-4 no-print">
                <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
                   <div className="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
-                    <h3 className="font-header font-bold text-lg">Вставить JSON текст</h3>
-                    <button onClick={() => setShowJsonModal(false)} className="text-stone-400 hover:text-red-500"><Icon name="x" /></button>
+                    <h3 className="font-header font-bold text-lg">Импорт JSON текста</h3>
+                    <button onClick={() => setShowJsonModal(false)} className="text-stone-400 hover:text-red-500 transition-colors"><Icon name="x" /></button>
                   </div>
                   <div className="p-4 flex-1 overflow-auto bg-stone-100">
                     <textarea 
@@ -343,18 +361,30 @@
                   </div>
                   <div className="p-4 border-t border-stone-200 bg-stone-50 flex justify-end gap-3">
                     <button onClick={() => setShowJsonModal(false)} className="px-4 py-2 rounded text-sm font-bold text-stone-500 hover:bg-stone-200 transition-colors">Отмена</button>
-                    <button onClick={loadFromText} className="px-6 py-2 rounded text-sm font-bold bg-stone-800 text-white hover:bg-stone-700 transition-colors shadow-lg">Загрузить Персонажа</button>
+                    <button onClick={loadFromText} className="px-6 py-2 rounded text-sm font-bold bg-stone-800 text-white hover:bg-stone-700 transition-colors shadow-lg">Загрузить</button>
                   </div>
                </div>
             </div>
           )}
 
-          {/* Меню управления */}
-          <div className={`fixed top-4 right-4 flex flex-col gap-2 bg-white p-2 rounded-xl shadow-xl z-50 border border-stone-200 no-print transition-opacity ${isPrinting ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            <button onClick={printSheet} title="PDF / Печать" className="p-2 bg-stone-800 text-white rounded hover:bg-stone-700"><Icon name="file" /></button>
-            <button onClick={saveAsJSON} title="Скачать JSON" className="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-500"><Icon name="download" /></button>
-            <button onClick={() => fileInputRef.current?.click()} title="Загрузить файл" className="p-2 bg-blue-600 text-white rounded hover:bg-blue-500"><Icon name="upload" /></button>
-            <button onClick={() => setShowJsonModal(true)} title="Вставить JSON текст" className="p-2 bg-amber-600 text-white rounded hover:bg-amber-500"><Icon name="clipboard" /></button>
+          {/* ПЛАВАЮЩЕЕ МЕНЮ (СКОПИРОВАННЫЙ ИНТЕРФЕЙС) */}
+          <div className={`fixed top-4 right-4 flex flex-col gap-3 bg-white p-3 rounded-xl shadow-2xl z-50 border border-stone-200 transition-opacity ${isPrinting ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            
+            <MenuButton onClick={printSheet} icon="print" label="Печать" colorClass="bg-stone-800 hover:bg-stone-700" />
+            <MenuButton onClick={saveAsJSON} icon="download" label="Скачать JSON" colorClass="bg-emerald-600 hover:bg-emerald-500" />
+            <MenuButton onClick={() => fileInputRef.current?.click()} icon="upload" label="Загрузить файл" colorClass="bg-blue-600 hover:bg-blue-500" />
+            <MenuButton onClick={() => setShowJsonModal(true)} icon="clipboard" label="Вставить текст" colorClass="bg-amber-600 hover:bg-amber-500" />
+            
+            <div className="h-px bg-stone-200 my-1"></div>
+            
+            <MenuButton 
+                onClick={clearAll} 
+                icon="trash" 
+                label="Очистить все" 
+                colorClass="bg-white hover:bg-red-50 border border-stone-200 hover:border-red-200" 
+                textColorClass="text-stone-400 hover:text-red-500"
+            />
+            
             <input ref={fileInputRef} type="file" className="hidden" accept=".json" onChange={loadFromFile} />
           </div>
 
