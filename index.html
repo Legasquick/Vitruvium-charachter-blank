@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Лист персонажа Витрувий</title>
   
   <!-- Tailwind CSS -->
@@ -17,30 +17,43 @@
 
   <style>
     /* Основные стили */
+    :root {
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
     body {
       background-color: #e7e5e4; /* Stone-200 */
       font-family: 'Inter', sans-serif;
       color: #1c1917;
       -webkit-font-smoothing: antialiased;
-      padding-bottom: 80px; /* Отступ для нижнего меню на мобилках */
+      /* Учитываем высоту меню (примерно 60px) + безопасную зону */
+      padding-bottom: calc(60px + var(--safe-bottom) + 20px);
+      
+      /* Предотвращаем "отрыв" меню при скролле на iOS */
+      overscroll-behavior-y: none; 
     }
+
     @media (min-width: 768px) {
-        body { padding-bottom: 0; }
+        body { 
+            padding-bottom: 0; 
+            overscroll-behavior-y: auto;
+        }
     }
 
     .font-header { font-family: 'Cinzel', serif; }
     .font-hand { font-family: 'Merriweather', serif; }
     
+    /* Утилита для безопасной зоны снизу */
+    .pb-safe {
+        padding-bottom: constant(safe-area-inset-bottom); /* iOS 11.0 */
+        padding-bottom: env(safe-area-inset-bottom); /* iOS 11.2+ */
+    }
+
     /* Убираем стрелки у input number */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
       -webkit-appearance: none; margin: 0; 
     }
-
-    /* Кастомный скроллбар */
-    .custom-scroll::-webkit-scrollbar { width: 8px; }
-    .custom-scroll::-webkit-scrollbar-track { background: #f5f5f4; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
 
     /* --- НАСТРОЙКИ ПЕЧАТИ --- */
     @media print {
@@ -50,7 +63,6 @@
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       .no-print { display: none !important; }
       
-      /* Принудительный возврат к A4 структуре */
       .sheet-page {
         width: 210mm !important;
         max-width: 210mm !important;
@@ -62,11 +74,12 @@
         overflow: hidden;
       }
       
-      /* Восстанавливаем flex-row для печати, если на мобильном был col */
       .print-row { flex-direction: row !important; }
       .print-col-35 { width: 35% !important; }
+      .print-col-50 { width: 50% !important; }
       .print-col-65 { width: 65% !important; padding-left: 1.5rem !important; border-left-width: 1px !important; }
       .print-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .print-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 
       input, textarea {
         background-color: transparent !important;
@@ -318,10 +331,10 @@
             </div>
           )}
 
-          {/* МЕНЮ (АДАПТИВНОЕ) */}
-          <div className={`fixed z-50 transition-opacity ${isPrinting ? 'opacity-0 pointer-events-none' : 'opacity-100'}
-              bottom-0 left-0 w-full bg-white border-t border-stone-300 p-2 flex gap-2 justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]
-              md:top-4 md:right-4 md:bottom-auto md:left-auto md:w-auto md:border md:rounded-xl md:flex-col md:shadow-2xl
+          {/* МЕНЮ (АДАПТИВНОЕ ИСПРАВЛЕННОЕ) */}
+          <div className={`fixed z-[9999] transition-opacity ${isPrinting ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+              bottom-0 left-0 w-full bg-white border-t border-stone-300 p-2 pb-safe flex gap-2 justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]
+              md:top-4 md:right-4 md:bottom-auto md:left-auto md:w-auto md:border md:rounded-xl md:flex-col md:shadow-2xl md:pb-2
           `}>
             <MenuButton onClick={printSheet} icon="print" label="Печать" colorClass="bg-stone-800 hover:bg-stone-700" />
             <MenuButton onClick={saveAsJSON} icon="download" label="Сохранить" colorClass="bg-emerald-600 hover:bg-emerald-500" />
