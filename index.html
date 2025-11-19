@@ -5,19 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Лист персонажа Витрувий</title>
   
-  <!-- Tailwind CSS для стилей -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
 
-  <!-- React 18 и ReactDOM для работы компонента -->
+  <!-- React & Babel -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  
-  <!-- Babel для преобразования JSX в JavaScript прямо в браузере -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+    /* Основные стили */
     body {
-      background-color: #f0f0f0; /* Светлый фон для страницы */
+      background-color: #e7e5e4; /* Stone-200 */
+      font-family: 'Inter', sans-serif;
+      color: #1c1917;
+      -webkit-font-smoothing: antialiased;
+    }
+    .font-header { font-family: 'Cinzel', serif; }
+    .font-hand { font-family: 'Merriweather', serif; }
+    
+    /* Убираем стрелки у input number */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; margin: 0; 
+    }
+
+    /* --- НАСТРОЙКИ ПЕЧАТИ --- */
+    @media print {
+      @page { size: A4; margin: 0; }
+      body { background: white; margin: 0; padding: 0; }
+      
+      /* Разрешаем печать цветов */
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      .no-print { display: none !important; }
+      
+      .sheet-page {
+        width: 210mm !important;
+        height: 297mm !important;
+        margin: 0 !important;
+        padding: 10mm 12mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        page-break-after: always;
+        overflow: hidden;
+      }
+
+      input, textarea {
+        background-color: transparent !important;
+        border-color: transparent !important;
+      }
+      
+      /* Инверсия темного блока для экономии краски */
+      .ink-saver {
+        background-color: white !important;
+        color: black !important;
+        border: 2px solid #444 !important;
+      }
+      /* Принудительно красим инпуты и тексты в черный внутри ink-saver */
+      .ink-saver input, .ink-saver textarea { color: black !important; }
+      .ink-saver .text-white { color: black !important; }
     }
   </style>
 </head>
@@ -26,83 +75,90 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    // --- Получаем нужные функции из глобального объекта React ---
     const { useState, useRef, useEffect } = React;
 
-    // --- Встроенные иконки как React-компоненты для надежности ---
-    const FileText = ({ size = 20 }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <line x1="10" y1="9" x2="8" y2="9" />
-      </svg>
-    );
+    // --- ИКОНКИ ---
+    const Icon = ({ name, size = 16, className = "" }) => {
+      const icons = {
+        save: <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />,
+        download: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />,
+        upload: <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />,
+        plus: <path d="M12 5v14M5 12h14" />,
+        minus: <path d="M5 12h14" />,
+        file: <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14 2z" />,
+        lock: <path d="M12 17h.01M10 21h4a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H10a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm2-10V7a4 4 0 1 0-8 0v4" />,
+        heart: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      };
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+          {icons[name] || <circle cx="12" cy="12" r="10" />}
+        </svg>
+      );
+    };
 
-    const Download = ({ size = 20 }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </svg>
-    );
-
-    const Upload = ({ size = 20 }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="17 8 12 3 7 8" />
-        <line x1="12" y1="3" x2="12" y2="15" />
-      </svg>
-    );
-    
-    // --- Компонент для авто-растягивания текстового поля ---
-    const AutoGrowTextarea = ({ isPrinting, value, ...props }) => {
+    // --- TEXTAREA ---
+    const AutoGrowTextarea = ({ isPrinting, value, className, placeholder, onChange, style }) => {
       const textareaRef = useRef(null);
-
       useEffect(() => {
-        if (!isPrinting && textareaRef.current) {
+        if (textareaRef.current && !isPrinting) {
           textareaRef.current.style.height = 'auto';
           textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
         }
       }, [value, isPrinting]);
 
-      const handleInput = (e) => {
-        e.target.style.height = 'auto';
-        e.target.style.height = e.target.scrollHeight + 'px';
-        if (props.onChange) {
-          props.onChange(e);
-        }
-      };
-
       if (isPrinting) {
         return (
-          <div 
-            className={props.className.replace('resize-none', '')}
-            style={{...props.style, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}
-          >
-            {value || ' '}
+          <div className={`whitespace-pre-wrap break-words font-hand leading-snug ${className}`} style={style}>
+            {value || '—'}
           </div>
         );
       }
-
-      return <textarea ref={textareaRef} value={value} {...props} style={{...props.style, overflow: 'hidden'}} onInput={handleInput} />;
+      return (
+        <textarea ref={textareaRef} value={value} onChange={onChange} placeholder={placeholder} rows={1} className={`overflow-hidden bg-transparent focus:outline-none focus:ring-1 focus:ring-stone-400/50 rounded resize-none font-hand leading-snug block ${className}`} style={style} />
+      );
     };
 
-    // --- Ваш React-компонент ---
+    // --- БЛОК ХАРАКТЕРИСТИКИ ---
+    const StatBox = ({ label, value, statKey, onUpdate }) => (
+      <div className="flex flex-col items-center justify-center p-2 bg-stone-50 rounded-lg border border-stone-200 shadow-sm print:shadow-none print:border-stone-300 print:bg-stone-50 h-24 transition-colors hover:border-stone-400">
+        <span className="text-[9px] uppercase font-bold text-stone-500 mb-1 text-center w-full leading-tight tracking-wide">{label}</span>
+        <input 
+          type="number" 
+          value={value} 
+          onChange={(e) => onUpdate(statKey, e.target.value)}
+          className="w-full text-center font-header font-bold text-5xl bg-transparent focus:outline-none text-stone-800 p-0 m-0 leading-none mt-1"
+        />
+      </div>
+    );
+
+    const SectionHeader = ({ title, onAdd, isPrinting }) => (
+      <div className="flex justify-between items-end border-b-2 border-stone-300 mb-2 mt-4 pb-1">
+        <h3 className="font-header font-bold text-lg text-stone-800 leading-none">{title}</h3>
+        {!isPrinting && onAdd && (
+          <button onClick={onAdd} className="text-stone-400 hover:text-stone-800 transition-colors p-1"><Icon name="plus" size={16} /></button>
+        )}
+      </div>
+    );
+
+    const ListItem = ({ value, onChange, onRemove, placeholder, isPrinting }) => (
+      <div className="group flex items-start gap-2 mb-1">
+        <div className="flex-1 relative">
+           <AutoGrowTextarea isPrinting={isPrinting} value={value} onChange={onChange} className="w-full text-xs bg-stone-50/50 px-2 py-0.5 border-b border-stone-100 focus:border-stone-400 transition-colors print:bg-transparent print:border-stone-200" placeholder={placeholder} />
+        </div>
+        {!isPrinting && (
+          <button onClick={onRemove} className="mt-0.5 text-stone-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" tabIndex="-1"><Icon name="minus" size={12} /></button>
+        )}
+      </div>
+    );
+
+    // --- ГЛАВНЫЙ КОМПОНЕНТ ---
     function VitruviyCharacterSheet() {
       const [name, setName] = useState('');
       const [characterClass, setCharacterClass] = useState('');
       const [race, setRace] = useState('');
       const [description, setDescription] = useState(''); 
-      const [stats, setStats] = useState({
-        physique: 1,
-        attention: 1,
-        movement: 1,
-        thinking: 1,
-        communication: 1,
-        will: 1
-      });
+      
+      const [stats, setStats] = useState({ physique: 1, attention: 1, movement: 1, thinking: 1, communication: 1, will: 1 });
       const [traits, setTraits] = useState(['']);
       const [skills, setSkills] = useState(['']); 
       const [abilities, setAbilities] = useState(['']);
@@ -118,52 +174,27 @@
       const [weakness, setWeakness] = useState('');
       
       const [isPrinting, setIsPrinting] = useState(false);
-      const [jsonInput, setJsonInput] = useState('');
       const fileInputRef = useRef(null);
 
       const updateStat = (stat, value) => {
-        const newValue = Math.max(1, Math.min(6, parseInt(value) || 1));
-        setStats({...stats, [stat]: newValue});
+        if (value === '') { setStats(prev => ({...prev, [stat]: ''})); return; }
+        const val = parseInt(value);
+        if (!isNaN(val)) setStats(prev => ({...prev, [stat]: Math.max(1, Math.min(6, val))}));
       };
+      
+      const handleListChange = (setter, list, index, value) => { const l = [...list]; l[index] = value; setter(l); };
+      const addItem = (setter, list) => setter([...list, '']);
+      const removeItem = (setter, list, index) => { if (list.length > 1) setter(list.filter((_, i) => i !== index)); };
 
-      const updateTrait = (index, value) => {
-        const newTraits = [...traits];
-        newTraits[index] = value;
-        setTraits(newTraits);
-      };
+      const sPhysique = Number(stats.physique) || 0;
+      const sWill = Number(stats.will) || 0;
+      const sMovement = Number(stats.movement) || 0;
+      const health = sPhysique * 6;
+      const inspiration = sWill * 2;
+      const speed = sMovement * 2;
+      const carryCapacity = sPhysique * 20;
 
-      const updateSkill = (index, value) => {
-        const newSkills = [...skills];
-        newSkills[index] = value;
-        setSkills(newSkills);
-      };
-
-      const updateAbility = (index, value) => {
-        const newAbilities = [...abilities];
-        newAbilities[index] = value;
-        setAbilities(newAbilities);
-      };
-
-      const addTrait = () => setTraits([...traits, '']);
-      const removeTrait = (index) => {
-        if (traits.length > 1) setTraits(traits.filter((_, i) => i !== index));
-      };
-
-      const addSkill = () => setSkills([...skills, '']); 
-      const removeSkill = (index) => { 
-        if (skills.length > 1) setSkills(skills.filter((_, i) => i !== index));
-      };
-
-      const addAbility = () => setAbilities([...abilities, '']);
-      const removeAbility = (index) => {
-        if (abilities.length > 1) setAbilities(abilities.filter((_, i) => i !== index));
-      };
-
-      const health = stats.physique * 6;
-      const inspiration = stats.will * 2;
-      const speed = stats.movement * 2;
-      const carryCapacity = stats.physique * 20;
-
+      // --- СОХРАНЕНИЕ JSON (РУС) ---
       const saveAsJSON = () => {
         const characterData = {
           "имя": name,
@@ -181,12 +212,6 @@
           "черты": traits,
           "умения": skills,
           "способности": abilities,
-          "атрибуты": {
-            "здоровье": health,
-            "вдохновение": inspiration,
-            "скорость": speed,
-            "грузоподъемность": carryCapacity
-          },
           "предыстория": {
             "характер": character,
             "эстетика": aesthetic,
@@ -208,288 +233,248 @@
         link.click();
         URL.revokeObjectURL(url);
       };
-      
-      const parseAndLoadJSON = (jsonString) => {
-        try {
-          const data = JSON.parse(jsonString);
-          
-          setName(data.имя || data.name || '');
-          setCharacterClass(data.класс || data.class || '');
-          setRace(data.раса || data.race || '');
-          setDescription(data.описание || data.description || '');
 
-          const loadedStats = data.характеристики || data.stats || {};
-          setStats({
-            physique: loadedStats.телосложение || loadedStats.physique || 1,
-            attention: loadedStats.внимание || loadedStats.attention || 1,
-            movement: loadedStats.движение || loadedStats.movement || 1,
-            thinking: loadedStats.мышление || loadedStats.thinking || 1,
-            communication: loadedStats.общение || loadedStats.communication || 1,
-            will: loadedStats.воля || loadedStats.will || 1
-          });
-          
-          const loadedTraits = data.черты || data.traits;
-          const loadedSkills = data.умения || data.skills;
-          const loadedAbilities = data.способности || data.abilities;
+      // --- ЗАГРУЗКА JSON ---
+      const loadFromFile = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            
+            setName(data.имя || data.name || '');
+            setCharacterClass(data.класс || data.class || '');
+            setRace(data.раса || data.race || '');
+            setDescription(data.описание || data.description || '');
 
-          setTraits(loadedTraits && loadedTraits.length > 0 ? loadedTraits : ['']);
-          setSkills(loadedSkills && loadedSkills.length > 0 ? loadedSkills : ['']);
-          setAbilities(loadedAbilities && loadedAbilities.length > 0 ? loadedAbilities : ['']);
-          
-          const background = data.предыстория || data.background || {};
-          setCharacter(background.характер || background.character || '');
-          setAesthetic(background.эстетика || background.aesthetic || '');
-          setFeature(background.фишка || background.feature || '');
-          setMotivation(background.мотивация || background.motivation || '');
-          setConflict(background.конфликт || background.conflict || '');
-          setSecret(background.тайна || background.secret || '');
-          setConsciousDesire(background.осознанное_желание || background.consciousDesire || '');
-          setUnconsciousDesire(background.неосознанное_желание || background.unconsciousDesire || '');
-          setWeakness(background.слабость || background.weakness || '');
-          
-          setJsonInput('');
+            const ls = data.характеристики || data.stats || {};
+            setStats({
+                physique: ls.телосложение || ls.physique || 1, 
+                attention: ls.внимание || ls.attention || 1,
+                movement: ls.движение || ls.movement || 1, 
+                thinking: ls.мышление || ls.thinking || 1,
+                communication: ls.общение || ls.communication || 1, 
+                will: ls.воля || ls.will || 1
+            });
 
-        } catch (error) {
-          console.error("Ошибка загрузки JSON:", error);
-          alert('Ошибка загрузки. Убедитесь, что это корректный JSON-файл или текст.');
-        }
+            setTraits(data.черты && data.черты.length ? data.черты : ['']);
+            setSkills(data.умения && data.умения.length ? data.умения : ['']);
+            setAbilities(data.способности && data.способности.length ? data.способности : ['']);
+
+            const bg = data.предыстория || data.background || {};
+            setCharacter(bg.характер || bg.character || ''); 
+            setAesthetic(bg.эстетика || bg.aesthetic || ''); 
+            setFeature(bg.фишка || bg.feature || '');
+            setMotivation(bg.мотивация || bg.motivation || ''); 
+            setConflict(bg.конфликт || bg.conflict || ''); 
+            setSecret(bg.тайна || bg.secret || '');
+            setConsciousDesire(bg.осознанное_желание || bg.consciousDesire || ''); 
+            setUnconsciousDesire(bg.неосознанное_желание || bg.unconsciousDesire || ''); 
+            setWeakness(bg.слабость || bg.weakness || '');
+
+          } catch (err) { alert("Ошибка JSON"); }
+        };
+        reader.readAsText(file);
+        e.target.value = null; 
       };
 
-      const loadFromFile = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => parseAndLoadJSON(e.target.result);
-          reader.readAsText(file);
-        }
-      };
-
-      const loadFromText = () => {
-        if (jsonInput.trim()) {
-          parseAndLoadJSON(jsonInput);
-        } else {
-          alert('Вставьте JSON в текстовое поле для загрузки.');
-        }
-      };
-
-      const saveAsPDF = () => {
+      const printSheet = () => {
         setIsPrinting(true);
-        setTimeout(() => {
-          window.print();
-          setTimeout(() => setIsPrinting(false), 1);
-        }, 100);
+        setTimeout(() => { window.print(); setIsPrinting(false); }, 100);
       };
 
       return (
-        <div className="py-8">
-          {!isPrinting && (
-            <div className="w-[210mm] mx-auto mb-4 print:hidden">
-              <div className="flex gap-2 mb-2">
-                <button onClick={saveAsPDF} className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                  <FileText /> Сохранить PDF
-                </button>
-                <button onClick={saveAsJSON} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                  <Download /> Сохранить JSON
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                  <Upload /> Загрузить из файла
-                </button>
-                <input ref={fileInputRef} type="file" accept=".json" onChange={loadFromFile} className="hidden" />
+        <div className="min-h-screen py-8 print:py-0 print:bg-white flex flex-col items-center">
+          
+          {/* Меню управления */}
+          <div className={`fixed top-4 right-4 flex flex-col gap-2 bg-white p-2 rounded-xl shadow-xl z-50 border border-stone-200 no-print transition-opacity ${isPrinting ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <button onClick={printSheet} title="PDF / Печать" className="p-2 bg-stone-800 text-white rounded hover:bg-stone-700"><Icon name="file" /></button>
+            <button onClick={saveAsJSON} title="Скачать JSON" className="p-2 bg-emerald-600 text-white rounded hover:bg-emerald-500"><Icon name="download" /></button>
+            <button onClick={() => fileInputRef.current?.click()} title="Загрузить" className="p-2 bg-blue-600 text-white rounded hover:bg-blue-500"><Icon name="upload" /></button>
+            <input ref={fileInputRef} type="file" className="hidden" accept=".json" onChange={loadFromFile} />
+          </div>
+
+          {/* --- СТРАНИЦА 1 --- */}
+          <div className="sheet-page w-[210mm] bg-white shadow-2xl min-h-[297mm] p-12 relative mx-auto mb-8 print:mb-0">
+            
+            {/* Шапка */}
+            <div className="flex justify-between items-end border-b-4 border-stone-800 pb-4 mb-6">
+              <div className="w-1/2 pr-4">
+                 <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Имя Персонажа</label>
+                 <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full font-header font-bold text-4xl text-stone-900 placeholder-stone-200 focus:outline-none bg-transparent leading-tight" placeholder="ИМЯ" />
               </div>
-              <div className="flex gap-2">
-                <textarea 
-                  value={jsonInput} 
-                  onChange={(e) => setJsonInput(e.target.value)} 
-                  className="flex-1 border border-gray-400 rounded px-2 py-1 text-xs" 
-                  rows="2" 
-                  placeholder="Или вставьте JSON сюда..."
-                ></textarea>
-                <button onClick={loadFromText} className="flex items-center gap-2 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
-                  <Upload /> Загрузить из текста
-                </button>
+              <div className="flex gap-4 w-1/2 justify-end items-end">
+                <div className="w-32">
+                  <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Класс</label>
+                  <input type="text" value={characterClass} onChange={e => setCharacterClass(e.target.value)} className="w-full border-b border-stone-300 focus:border-stone-800 focus:outline-none pb-1 font-header font-bold bg-transparent" placeholder="Класс" />
+                </div>
+                <div className="w-32">
+                  <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Раса</label>
+                  <input type="text" value={race} onChange={e => setRace(e.target.value)} className="w-full border-b border-stone-300 focus:border-stone-800 focus:outline-none pb-1 font-header font-bold bg-transparent" placeholder="Раса" />
+                </div>
               </div>
             </div>
-          )}
 
-          {/* --- ПЕРВАЯ СТРАНИЦА --- */}
-          <div className="w-[210mm] bg-white p-4 mx-auto shadow-lg" style={{fontFamily: 'Arial, sans-serif'}}>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-semibold">ИМЯ ПЕРСОНАЖА</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-xs print:border-gray-300" placeholder="Имя" />
+            <div className="flex gap-8 h-full">
+              {/* Левая колонка */}
+              <div className="w-[35%] flex flex-col gap-6">
+                
+                {/* Вторичные атрибуты */}
+                <div className="grid grid-cols-2 gap-3">
+                   <div className="col-span-2 p-3 rounded-lg border border-red-200 bg-red-50 print:bg-red-50 print:border-red-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] uppercase font-bold text-red-800/70">Здоровье</span>
+                        <span className="text-[10px] text-red-800/50">Максимум</span>
+                      </div>
+                      <div className="text-4xl font-header font-black text-center text-red-900 mt-1">{health}</div>
+                   </div>
+
+                   <div className="p-2 rounded-lg border border-amber-200 bg-amber-50 text-center print:bg-amber-50 print:border-amber-200">
+                      <span className="text-[10px] uppercase font-bold text-amber-800/70">Вдохновение</span>
+                      <div className="text-2xl font-header font-black text-amber-900">{inspiration}</div>
+                      <div className="text-[8px] text-amber-800/50 -mt-1 uppercase tracking-wider">Максимум</div>
+                   </div>
+                   <div className="p-2 rounded-lg border border-blue-200 bg-blue-50 text-center print:bg-blue-50 print:border-blue-200">
+                      <span className="text-[10px] uppercase font-bold text-blue-800/70">Скорость</span>
+                      <div className="text-2xl font-header font-black text-blue-900">{speed} <span className="text-xs font-sans font-normal">м</span></div>
+                   </div>
+                   <div className="col-span-2 p-2 rounded-lg border border-stone-200 bg-stone-100 flex justify-between items-center px-4 print:bg-stone-100">
+                      <span className="text-[10px] uppercase font-bold text-stone-500">Нагрузка</span>
+                      <div className="text-xl font-header font-bold text-stone-700">{carryCapacity} <span className="text-sm font-sans font-normal">кг</span></div>
+                   </div>
+                </div>
+
+                {/* ХАРАКТЕРИСТИКИ */}
+                <div>
+                  <h3 className="font-header font-bold text-center text-stone-800 border-b-2 border-stone-800 pb-1 mb-4 uppercase tracking-widest text-sm">Характеристики</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <StatBox label="Телосложение" value={stats.physique} statKey="physique" onUpdate={updateStat} />
+                    <StatBox label="Внимание" value={stats.attention} statKey="attention" onUpdate={updateStat} />
+                    <StatBox label="Движение" value={stats.movement} statKey="movement" onUpdate={updateStat} />
+                    <StatBox label="Мышление" value={stats.thinking} statKey="thinking" onUpdate={updateStat} />
+                    <StatBox label="Общение" value={stats.communication} statKey="communication" onUpdate={updateStat} />
+                    <StatBox label="Воля" value={stats.will} statKey="will" onUpdate={updateStat} />
+                  </div>
+                </div>
+                
+                <div className="flex-1"></div>
+
               </div>
-              <div>
-                <label className="block text-sm font-semibold">КЛАСС</label>
-                <input type="text" value={characterClass} onChange={(e) => setCharacterClass(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-xs print:border-gray-300" placeholder="Класс" />
+
+              {/* Правая колонка */}
+              <div className="w-[65%] pl-6 border-l border-stone-200 border-dashed print:border-stone-300">
+                <SectionHeader title="Черты" onAdd={() => addItem(setTraits, traits)} isPrinting={isPrinting} />
+                {traits.map((t, i) => (
+                  <ListItem key={i} value={t} isPrinting={isPrinting} onChange={e => handleListChange(setTraits, traits, i, e.target.value)} onRemove={() => removeItem(setTraits, traits, i)} placeholder="Особенность..." />
+                ))}
+
+                <SectionHeader title="Умения" onAdd={() => addItem(setSkills, skills)} isPrinting={isPrinting} />
+                {skills.map((s, i) => (
+                  <ListItem key={i} value={s} isPrinting={isPrinting} onChange={e => handleListChange(setSkills, skills, i, e.target.value)} onRemove={() => removeItem(setSkills, skills, i)} placeholder="Навык..." />
+                ))}
+
+                <SectionHeader title="Способности" onAdd={() => addItem(setAbilities, abilities)} isPrinting={isPrinting} />
+                {abilities.map((a, i) => (
+                  <ListItem key={i} value={a} isPrinting={isPrinting} onChange={e => handleListChange(setAbilities, abilities, i, e.target.value)} onRemove={() => removeItem(setAbilities, abilities, i)} placeholder="Способность..." />
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-semibold">РАСА</label>
-                <input type="text" value={race} onChange={(e) => setRace(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-1 text-xs print:border-gray-300" placeholder="Раса" />
-              </div>
+            </div>
+          </div>
+
+          {/* --- СТРАНИЦА 2 --- */}
+          <div className="sheet-page w-[210mm] bg-white shadow-2xl min-h-[297mm] p-12 mx-auto print:mt-0 print:shadow-none">
+            
+            <div className="flex items-center gap-4 mb-8 pb-2 border-b-4 border-stone-800">
+                <div className="bg-stone-800 text-white p-2 rounded">
+                    <Icon name="file" size={24} />
+                </div>
+                <h2 className="font-header font-black text-3xl text-stone-800 uppercase">Личное Дело</h2>
+                <div className="ml-auto text-sm text-stone-400 font-header uppercase tracking-widest">Конфиденциально</div>
             </div>
             
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <h2 className="text-sm font-bold mb-2 bg-gray-200 px-3 py-1 rounded">ХАРАКТЕРИСТИКИ</h2>
-                {[
-                  {key: 'physique', label: '🧍‍♂️ Телосложение', desc: 'сопротивление физ. эффектам'},
-                  {key: 'attention', label: '👁 Внимание', desc: 'восприятие, дальний бой'},
-                  {key: 'movement', label: '🦵 Движение', desc: 'перемещение, ближний бой'},
-                  {key: 'thinking', label: '🧠 Мышление', desc: 'анализ, знания'},
-                  {key: 'communication', label: '🎭 Общение', desc: 'влияние речью'},
-                  {key: 'will', label: '🌀 Воля', desc: 'сопротивление псих. эффектам'}
-                ].map(stat => (
-                  <div key={stat.key} className="mb-1 border border-gray-300 rounded p-1">
-                    <div className="flex justify-between items-center">
-                      <label className="font-semibold text-xs">{stat.label}</label>
-                      <input type="number" min="1" max="6" value={stats[stat.key]} onChange={(e) => updateStat(stat.key, e.target.value)} className="w-14 border-2 border-blue-500 rounded text-center text-lg font-bold print:border-gray-300" />
-                    </div>
-                    <p className="text-xs text-gray-600 leading-tight">{stat.desc}</p>
-                  </div>
-                ))}
-                <h2 className="text-sm font-bold mb-1 mt-2 bg-gray-200 px-3 py-1 rounded">АТРИБУТЫ</h2>
-                <div className="space-y-1">
-                  <div className="border-2 border-red-400 rounded p-1 bg-red-50">
-                    <div className="text-xs text-gray-600">Максимум</div>
-                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">❤️‍🩹 Здоровье</span><span className="text-lg font-bold text-red-600">{health}</span></div>
-                  </div>
-                  <div className="border-2 border-yellow-400 rounded p-1 bg-yellow-50">
-                    <div className="text-xs text-gray-600">Максимум</div>
-                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">⭐️ Вдохновение</span><span className="text-lg font-bold text-yellow-600">{inspiration}</span></div>
-                  </div>
-                  <div className="border-2 border-blue-400 rounded p-1 bg-blue-50">
-                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">👣 Скорость</span><span className="text-lg font-bold text-blue-600">{speed} м</span></div>
-                  </div>
-                  <div className="border-2 border-gray-400 rounded p-1 bg-gray-50">
-                    <div className="flex justify-between items-center"><span className="font-semibold text-xs">🪨 Грузоподъёмность</span><span className="text-lg font-bold text-gray-600">{carryCapacity} кг</span></div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-span-2">
-                <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
-                  <h2 className="text-sm font-bold">ЧЕРТЫ</h2>
-                  {!isPrinting && <button onClick={addTrait} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
-                </div>
-                <div className="mb-2">
-                  {traits.map((trait, index) => (
-                    <div key={index} className="mb-1 flex gap-2">
-                      <AutoGrowTextarea isPrinting={isPrinting} value={trait} onChange={(e) => updateTrait(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Черта ${index + 1}`} style={{ minHeight: '30px' }} />
-                      {!isPrinting && <button onClick={() => removeTrait(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={traits.length === 1} style={{opacity: traits.length === 1 ? 0.5 : 1}}>−</button>}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
-                  <h2 className="text-sm font-bold">УМЕНИЯ</h2>
-                  {!isPrinting && <button onClick={addSkill} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
-                </div>
-                <div className="mb-2">
-                  {skills.map((skill, index) => (
-                    <div key={index} className="mb-1 flex gap-2">
-                      <AutoGrowTextarea isPrinting={isPrinting} value={skill} onChange={(e) => updateSkill(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Умение ${index + 1}`} style={{ minHeight: '30px' }} />
-                      {!isPrinting && <button onClick={() => removeSkill(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={skills.length === 1} style={{opacity: skills.length === 1 ? 0.5 : 1}}>−</button>}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-between items-center mb-2 bg-gray-200 px-3 py-1 rounded">
-                  <h2 className="text-sm font-bold">СПОСОБНОСТИ</h2>
-                  {!isPrinting && <button onClick={addAbility} className="bg-green-500 text-white px-2 py-0.5 rounded font-bold hover:bg-green-600 print:hidden">+</button>}
-                </div>
-                <div>
-                  {abilities.map((ability, index) => (
-                    <div key={index} className="mb-1 flex gap-2">
-                      <AutoGrowTextarea isPrinting={isPrinting} value={ability} onChange={(e) => updateAbility(index, e.target.value)} className="flex-1 border border-gray-400 rounded px-2 py-1 resize-none text-xs print:border-gray-300" rows="1" placeholder={`Способность ${index + 1}`} style={{ minHeight: '30px' }} />
-                      {!isPrinting && <button onClick={() => removeAbility(index)} className="bg-red-500 text-white px-2 rounded font-bold hover:bg-red-600 print:hidden" disabled={abilities.length === 1} style={{opacity: abilities.length === 1 ? 0.5 : 1}}>−</button>}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* Общее описание */}
+            <div className="mb-8 bg-stone-50 p-6 rounded-xl border border-stone-200 relative print:bg-stone-50">
+              <div className="absolute -top-3 left-6 bg-white px-2 text-xs font-bold text-stone-400 uppercase tracking-widest">Внешность и История</div>
+              <AutoGrowTextarea isPrinting={isPrinting} value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-transparent text-stone-800 text-sm" placeholder="Опишите внешность, манеры, краткую биографию..." style={{minHeight: '80px'}} />
             </div>
-          </div>
 
-          {/* --- ВТОРАЯ СТРАНИЦА --- */}
-          <div className="w-[210mm] bg-white p-8 mx-auto shadow-lg mt-8 print:break-before-page print:mt-0" style={{fontFamily: 'Arial, sans-serif'}}>
-            <div className="space-y-4">
-              
-              <div>
-                <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ОПИСАНИЕ ПЕРСОНАЖА</label>
-                <AutoGrowTextarea 
-                    isPrinting={isPrinting} 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                    className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" 
-                    rows="1" 
-                    placeholder="Краткое описание внешности, характера и предыстории..." 
-                    style={{ minHeight: '60px' }}
-                />
-              </div>
-
+            <div className="grid grid-cols-3 gap-6 mb-8">
               {[
-                {label: "ХАРАКТЕР", value: character, setter: setCharacter, placeholder: "Основные черты характера персонажа..."},
-                {label: "СУТЬ ЭСТЕТИКИ", value: aesthetic, setter: setAesthetic, placeholder: "Визуальный стиль, атмосфера персонажа..."},
-                {label: "ФИШКА", value: feature, setter: setFeature, placeholder: "Уникальная особенность персонажа..."},
-              ].map(field => (
-                <div key={field.label}>
-                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">{field.label}</label>
-                  <AutoGrowTextarea isPrinting={isPrinting} value={field.value} onChange={(e) => field.setter(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder={field.placeholder} style={{ minHeight: '60px' }} />
+                 { l: "Характер", v: character, s: setCharacter, ph: "Добрый, но вспыльчивый..." },
+                 { l: "Эстетика", v: aesthetic, s: setAesthetic, ph: "Плащ, запах дождя..." },
+                 { l: "Фишка", v: feature, s: setFeature, ph: "Всегда подбрасывает монету..." }
+              ].map((field, idx) => (
+                <div key={idx} className="border-t-2 border-stone-300 pt-2">
+                  <label className="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">{field.l}</label>
+                  <AutoGrowTextarea isPrinting={isPrinting} value={field.v} onChange={e => field.s(e.target.value)} className="w-full bg-transparent font-hand text-xs" placeholder={field.ph} />
                 </div>
               ))}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">МОТИВАЦИЯ</label>
-                  <AutoGrowTextarea isPrinting={isPrinting} value={motivation} onChange={(e) => setMotivation(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Что движет персонажем..." style={{ minHeight: '60px' }} />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">КОНФЛИКТ</label>
-                  <AutoGrowTextarea isPrinting={isPrinting} value={conflict} onChange={(e) => setConflict(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Внутренний или внешний конфликт..." style={{ minHeight: '60px' }} />
-                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-12">
+              <div className="space-y-6">
+                 <h3 className="font-header font-bold text-stone-800 text-lg border-b border-stone-200 pb-1">Драйверы</h3>
+                 
+                 <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full print:bg-blue-500"></span>
+                        <label className="text-xs font-bold text-stone-500 uppercase">Мотивация</label>
+                    </div>
+                    <AutoGrowTextarea isPrinting={isPrinting} value={motivation} onChange={e => setMotivation(e.target.value)} className="w-full italic text-stone-700 pl-4 border-l-2 border-stone-100 print:border-stone-200 text-xs" placeholder="Почему он отправился в путь?" />
+                 </div>
+                 
+                 <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full print:bg-amber-500"></span>
+                        <label className="text-xs font-bold text-stone-500 uppercase">Конфликт</label>
+                    </div>
+                    <AutoGrowTextarea isPrinting={isPrinting} value={conflict} onChange={e => setConflict(e.target.value)} className="w-full italic text-stone-700 pl-4 border-l-2 border-stone-100 print:border-stone-200 text-xs" placeholder="Что ему мешает?" />
+                 </div>
+
+                 <div className="pt-4">
+                    <div className="flex items-center gap-2 mb-1 text-stone-800">
+                        <Icon name="lock" size={14} />
+                        <label className="text-xs font-bold uppercase">Тайна</label>
+                    </div>
+                    <div className="bg-stone-100 p-3 rounded border border-stone-200 print:bg-stone-100">
+                        <AutoGrowTextarea isPrinting={isPrinting} value={secret} onChange={e => setSecret(e.target.value)} className="w-full text-stone-800 text-xs" placeholder="Скелет в шкафу..." />
+                    </div>
+                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ТАЙНА</label>
-                <AutoGrowTextarea isPrinting={isPrinting} value={secret} onChange={(e) => setSecret(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Секрет персонажа..." style={{ minHeight: '60px' }} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">ОСОЗНАННОЕ ЖЕЛАНИЕ</label>
-                  <AutoGrowTextarea isPrinting={isPrinting} value={consciousDesire} onChange={(e) => setConsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Чего персонаж хочет..." style={{ minHeight: '60px' }} />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">НЕОСОЗНАННОЕ ЖЕЛАНИЕ</label>
-                  <AutoGrowTextarea isPrinting={isPrinting} value={unconsciousDesire} onChange={(e) => setUnconsciousDesire(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Что на самом деле нужно..." style={{ minHeight: '60px' }} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold mb-1 bg-gray-200 px-3 py-1 rounded">СЛАБОСТЬ</label>
-                <AutoGrowTextarea isPrinting={isPrinting} value={weakness} onChange={(e) => setWeakness(e.target.value)} className="w-full border-2 border-gray-400 rounded px-3 py-2 resize-none text-xs print:border-gray-300" rows="1" placeholder="Уязвимость или недостаток..." style={{ minHeight: '60px' }} />
+              
+              <div className="bg-stone-800 text-stone-200 p-6 rounded-xl shadow-inner ink-saver">
+                 {/* ИСПРАВЛЕНО: добавлен класс print:text-black для заголовка */}
+                 <h3 className="font-header font-bold text-white/90 text-lg border-b border-stone-600 pb-1 mb-6 print:border-stone-300 print:text-black">Глубинная Психология</h3>
+                 
+                 <div className="mb-6">
+                    <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">Осознанное Желание</label>
+                    <AutoGrowTextarea isPrinting={isPrinting} value={consciousDesire} onChange={e => setConsciousDesire(e.target.value)} className="w-full text-sm font-hand text-white placeholder-stone-600 print:text-black" placeholder="Я хочу..." />
+                 </div>
+                 
+                 <div className="mb-8">
+                    <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">Неосознанное Желание (Истина)</label>
+                    <AutoGrowTextarea isPrinting={isPrinting} value={unconsciousDesire} onChange={e => setUnconsciousDesire(e.target.value)} className="w-full text-sm font-hand text-white placeholder-stone-600 print:text-black" placeholder="На самом деле мне нужно..." />
+                 </div>
+
+                 <div className="border-t border-stone-600 pt-4 print:border-stone-300">
+                    {/* ИСПРАВЛЕНО: добавлен класс print:text-red-800 для иконки и текста */}
+                    <div className="flex items-center gap-2 text-red-400 mb-2 print:text-red-800">
+                        <Icon name="heart" size={16} />
+                        <label className="text-xs font-bold uppercase">Слабость / Рок</label>
+                    </div>
+                    <AutoGrowTextarea isPrinting={isPrinting} value={weakness} onChange={e => setWeakness(e.target.value)} className="w-full text-sm font-hand text-red-200 placeholder-red-900/30 print:text-black" placeholder="То, что делает его уязвимым..." />
+                 </div>
               </div>
             </div>
+
           </div>
-          <style>{`
-            @media print {
-              body { margin: 0; background-color: #fff; }
-              .py-8 { padding: 0; }
-              .shadow-lg { box-shadow: none; margin-top: 0 !important; }
-              .w-\\[210mm\\] { width: 100%; }
-              .print\\:hidden { display: none !important; }
-              .print\\:border-gray-300 { border-color: #d1d5db !important; }
-              div { page-break-inside: avoid; }
-              
-              .bg-gray-200, .bg-red-50, .bg-yellow-50, .bg-blue-50, .bg-gray-50 {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-            }
-          `}</style>
         </div>
       );
     }
 
-    const container = document.getElementById('root');
-    const root = ReactDOM.createRoot(container);
+    const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<VitruviyCharacterSheet />);
-
   </script>
-
 </body>
 </html>
