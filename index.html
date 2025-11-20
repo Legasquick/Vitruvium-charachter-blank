@@ -412,12 +412,12 @@
               <div className="w-full md:w-[65%] pl-0 md:pl-6 border-l-0 md:border-l border-stone-200 border-dashed print:border-stone-300 print-col-65">
                 <SectionHeader title="Черты" onAdd={() => addItem(setTraits, traits)} isPrinting={isPrinting} />
                 {traits.map((t, i) => (
-                  <ListItem key={i} value={t} isPrinting={isPrinting} onChange={e => handleListChange(setTraits, traits, i, e.target.value)} onRemove={() => removeItem(setTraits, traits, i)} placeholder="Особенность..." />
+                  <ListItem key={i} value={t} isPrinting={isPrinting} onChange={e => handleListChange(setTraits, traits, i, e.target.value)} onRemove={() => removeItem(setTraits, traits, i)} placeholder="Черта..." />
                 ))}
 
                 <SectionHeader title="Умения" onAdd={() => addItem(setSkills, skills)} isPrinting={isPrinting} />
                 {skills.map((s, i) => (
-                  <ListItem key={i} value={s} isPrinting={isPrinting} onChange={e => handleListChange(setSkills, skills, i, e.target.value)} onRemove={() => removeItem(setSkills, skills, i)} placeholder="Навык..." />
+                  <ListItem key={i} value={s} isPrinting={isPrinting} onChange={e => handleListChange(setSkills, skills, i, e.target.value)} onRemove={() => removeItem(setSkills, skills, i)} placeholder="Умение..." />
                 ))}
 
                 <SectionHeader title="Способности" onAdd={() => addItem(setAbilities, abilities)} isPrinting={isPrinting} />
